@@ -12,11 +12,21 @@ class BrandController extends \yii\web\Controller
     {
         $query=Brand::find();
         $paginate=new Pagination([
-            'totalCount'=>$query->count(),
-            'defaultPageSize'=>5
+            'totalCount'=>$query->where(['>','status',-1])->count(),
+            'defaultPageSize'=>2
         ]);
-        $model=Brand::find()->orderBy('sort DESC')->limit($paginate->limit)->offset($paginate->offset)->all();
+        $model=Brand::find()->where(['>','status','-1'])->orderBy('sort DESC')->limit($paginate->limit)->offset($paginate->offset)->all();
         return $this->render('index',['model'=>$model,'paginate'=>$paginate]);
+    }
+    public function actionApi()
+    {
+        $query=Brand::find();
+        $paginate=new Pagination([
+            'totalCount'=>$query->where(['>','status',-1])->count(),
+            'defaultPageSize'=>2
+        ]);
+        $model=Brand::find()->where(['>','status','-1'])->orderBy('sort DESC')->limit($paginate->limit)->offset($paginate->offset)->all();
+        echo $this->render('index',['model'=>$model,'paginate'=>$paginate]);
     }
     public function actionAdd(){
         $model=new Brand();
@@ -30,6 +40,7 @@ class BrandController extends \yii\web\Controller
         }
         return $this->render('add',['model'=>$model]);
     }
+
     public function actionEdit($id){
         $model=Brand::findOne(['id'=>$id]);
         $request=\Yii::$app->request;
@@ -46,7 +57,8 @@ class BrandController extends \yii\web\Controller
     public function actionDel($id){
         $model=Brand::findOne(['id'=>$id]);
         $model->status=-1;
-        $model->save(false);
-        return $this->redirect(['brand/index']);
+        $result=$model->save(false);
+//        $result=$this->redirect(['brand/index']);
+        echo json_encode([$result]);
     }
 }

@@ -2,6 +2,7 @@
 $status=[1=>'显示',-1=>'删除',0=>'隐藏']
 ?>
 <?=\yii\bootstrap\Html::a('添加',\yii\helpers\Url::to(['brand/add']));?>
+<div id="body">
 <table class="table table-bordered table-hover">
     <thead>
     <tr>
@@ -23,10 +24,11 @@ $status=[1=>'显示',-1=>'删除',0=>'隐藏']
         <td><?=mb_substr($m->intro,0,20).'...'?></td>
         <td>
             <?=\yii\bootstrap\Html::a('修改',\yii\helpers\Url::to(['brand/edit','id'=>$m->id]));?>
-            <?=\yii\bootstrap\Html::a('删除',\yii\helpers\Url::to(['brand/del','id'=>$m->id]));?>
+            <?=\yii\bootstrap\Html::a('删除','javascript:void(0)',['class'=>'del','data-id'=>$m->id]);?>
         </td>
     </tr>
     </tbody>
     <?php endforeach;?>
 </table>
 <?=\yii\widgets\LinkPager::widget(['pagination'=>$paginate])?>
+</div>
