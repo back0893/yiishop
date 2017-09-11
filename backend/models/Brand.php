@@ -3,6 +3,7 @@
 namespace backend\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 use yii\web\UploadedFile;
 
 /**
@@ -72,5 +73,9 @@ class Brand extends \yii\db\ActiveRecord
             $this->saveImg();
         }
         return $this->save(false);
+    }
+    public static function getDropList(){
+        $dropList=self::find()->select(['id','name'])->orderBy('id DESC')->asArray()->all();
+        return ArrayHelper::map($dropList,'id','name');
     }
 }

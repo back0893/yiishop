@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use app\models\Article;
 use app\models\ArticleCategory;
 use yii\data\Pagination;
 
@@ -33,10 +34,13 @@ class ArticleCategoryController extends \yii\web\Controller
         }
         return $this->render('add',['model'=>$model]);
     }
-    public function actionDel($id){
-        $model=ArticleCategory::findOne(['id'=>$id]);
-        $model->status=-1;
-        $model->save();
-        $this->redirect(['article-category/index']);
+    public function actionDel(){
+        $id=\Yii::$app->request->post('id','0');
+        if($id){
+            $article=Article::findOne(['id'=>$id]);
+            $article->status=-1;
+            return json_encode($article->save());
+        }
+        return 'false';
     }
 }

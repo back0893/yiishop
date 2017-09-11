@@ -21,9 +21,10 @@
         <td><?=date('Y-m-d',$m->create_time)?></td>
         <td>
             <?=\yii\bootstrap\Html::a('修改',\yii\helpers\Url::to(['article/edit','id'=>$m->id]))?>
-            <?=\yii\bootstrap\Html::a('删除',\yii\helpers\Url::to(['article/del','id'=>$m->id]))?>
+            <?=\yii\bootstrap\Html::a('删除','javascript:void(0)',['class'=>'del','data-id'=>$m->id])?>
         </td>
     </tr>
     <?php endforeach;?>
     </tbody>
 </table>
+<span style="hidden" id='required' data-del="<?=\yii\helpers\Url::to(['brand/del'])?>" data-csrf="<?=\Yii::$app->request->csrfToken?>"></span>

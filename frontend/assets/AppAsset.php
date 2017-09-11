@@ -13,8 +13,10 @@ class AppAsset extends AssetBundle
     public $baseUrl = '@web';
     public $css = [
         'css/site.css',
+        'tree/css/zTreeStyle/zTreeStyle.css'
     ];
     public $js = [
+        'tree/js/jquery.ztree.core.min.js'
     ];
     public $depends = [
         'yii\web\YiiAsset',

@@ -17,7 +17,7 @@ $status=[1=>'显示',-1=>'删除',0=>'隐藏']
     <tbody>
     <?php foreach($model as $m):?>
     <tr>
-        <td><img <?=$m->logo?"src='/$m->logo?>'":''?> style="width: 50px"></td>
+        <td><?=\yii\bootstrap\Html::img($m->logo?$m->logo:Null,['style'=>'width:50px'])?></td>
         <td><?=$m->name?></td>
         <td><?=$m->sort?></td>
         <td><?=$status[$m->status]?></td>
@@ -32,3 +32,4 @@ $status=[1=>'显示',-1=>'删除',0=>'隐藏']
 </table>
 <?=\yii\widgets\LinkPager::widget(['pagination'=>$paginate])?>
 </div>
+<span style="hidden" id='required' data-del="<?=\yii\helpers\Url::to(['brand/del'])?>" data-csrf="<?=\Yii::$app->request->csrfToken?>"></span>

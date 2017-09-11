@@ -62,10 +62,14 @@ class ArticleController extends \yii\web\Controller
         $cats=ArrayHelper::map(ArticleCategory::find()->where(['!=','status',-1])->all(),'id','name');
         return $this->render('add',['article'=>$article,'articleDetail'=>$articleDetail,'cats'=>$cats]);
     }
-    public function actionDel($id){
-        $article=Article::findOne(['id'=>$id]);
-        $article->status=-1;
-        $article->save();
-        return $this->redirect(['article/index']);
+    public function actionDel(){
+        $id=\Yii::$app->request->post('id','0');
+        if($id){
+            $article=Article::findOne(['id'=>$id]);
+            $article->status=-1;
+            return json_encode($article->save());
+        }
+        return 'false';
+//        return $this->redirect(['article/index']);
     }
 }
