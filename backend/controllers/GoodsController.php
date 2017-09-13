@@ -153,4 +153,13 @@ class GoodsController extends \yii\web\Controller
         \Yii::$app->session->setFlash('success','test');
         return $this->render('index1');
     }
+    public function actionShow($id){
+        $name=Goods::find()->select('name')->where(['id'=>$id])->One();
+        if(!$name){
+            throw new HttpException('404','页面走丢了');
+        }
+        $intro=GoodsIntro::find()->select('intro')->where(['goods_id'=>$id])->One();
+        $imgs=GoodsGallery::find()->select('path')->asArray()->where(['goods_id'=>$id])->all();
+        return $this->render('show',['name'=>$name,'intro'=>$intro,'imgs'=>$imgs]);
+    }
 }

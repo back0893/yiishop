@@ -12,14 +12,17 @@ return [
     'controllerNamespace' => 'backend\controllers',
     'bootstrap' => ['log'],
     'modules' => [],
+    'layout'=>'mime',
     'language'=>'zh-CN',
     'components' => [
         'request' => [
             'csrfParam' => '_csrf-backend',
         ],
         'user' => [
-            'identityClass' => 'common\models\User',
+            //修改为我实现的User登录models
+            'identityClass' => 'backend\models\User',
             'enableAutoLogin' => true,
+            'loginUrl'=>['user/login'],
             'identityCookie' => ['name' => '_identity-backend', 'httpOnly' => true],
         ],
         'session' => [
