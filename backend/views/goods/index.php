@@ -2,7 +2,8 @@
 /* @var $this yii\web\View
 *  @var $rows backend\models\Goods
  */
-echo $this->render('search.php',['search'=>$search])
+echo $this->render('search.php',['search'=>$search]);
+echo $sort->link('name').'|'.$sort->link('price');
 ?>
 <table class="table table-bordered table-hover">
     <thead>

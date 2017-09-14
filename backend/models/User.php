@@ -23,9 +23,16 @@ use yii\web\IdentityInterface;
  */
 class User extends \yii\db\ActiveRecord implements IdentityInterface
 {
+    //登录时的明文密码
     public $login;
+    //明文密码
     public $pwd;
+    //修改密码时的旧密码
+    public $oldPwd;
+    //重复密码
     public $rpassword;
+
+    const SCENARIO_CHANGE_PASSWORD='change_password';
     /**
      * @inheritdoc
      */
@@ -40,9 +47,10 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
     public function setScenario($value)
     {
         $p=parent::setScenario($value);
-        $p['logo']=['login','pwd'];
+        $p['logo']=['login','pwd','remember'];
         $p['add']=['username','rpassword', 'password_hash', 'email','status'];
         $p['edit']=['username','pwd','auth_key', 'email','status'];
+        $p[self::SCENARIO_CHANGE_PASSWORD]=['pwd','rpassword','oldPwd'];
         return $p;
     }
 
@@ -56,11 +64,16 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
             [['username', 'password_hash','email'], 'required','on'=>'add'],
             //登录规则
             [['login','pwd'],'required','on'=>'login'],
+            //修改自我密码规则
+            [['pwd','oldPwd'],'required','on'=>self::SCENARIO_CHANGE_PASSWORD],
+            [['pwd'],'match','pattern'=>'/^(?=.*?[a-z])(?=.*?[0-9])[a-z0-9]+$/','message'=>'请最少包含一个字符和数组','on'=>self::SCENARIO_CHANGE_PASSWORD],
+            ['rpassword','compare','compareAttribute'=>'pwd','message'=>'2次密码不相同','on'=>self::SCENARIO_CHANGE_PASSWORD],
             //通用规则,当没有值会跳过验证规则
             [['status'], 'integer'],
             [['username', 'password_hash', 'email','pwd'], 'string', 'max' => 255,'min'=>4,'tooShort'=>'位数少于4位'],
+            ['email','email'],
             [['username','email'], 'unique'],
-            ['rpassword','compare','compareAttribute'=>'password_hash','message'=>'2次密码不相同']
+            ['rpassword','compare','compareAttribute'=>'password_hash','message'=>'2次密码不相同','on'=>'edit']
         ];
     }
 
@@ -78,7 +91,8 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
             'status' => '状态',
             'rpassword'=>'重复密码',
             'pwd'=>'登录密码',
-            'login'=>'登录帐号'
+            'login'=>'登录帐号',
+            'oldPwd'=>'旧密码'
         ];
     }
     public function behaviors()
@@ -102,7 +116,7 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
     public static function findIdentity($id)
     {
         // TODO: Implement findIdentity() method.
-        return self::findOne(['id'=>$id,'status'=>[1,2]]);
+        return self::findOne(['id'=>$id,'status'=>[0,1,2]]);
     }
 
     /**
@@ -156,5 +170,32 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
     public function validateAuthKey($authKey)
     {
         return $this->getAuthKey()===$authKey;
+    }
+    //@var $insert 表示本次保存是是添加还是保存
+    public function beforeSave($insert)
+    {
+        $security=\Yii::$app->getSecurity();
+        if($insert){
+            $this->password_hash=$security->generatePasswordHash($this->password_hash);
+            //生成一个用于自动登录的令牌
+            $this->auth_key=$security->generateRandomString();
+        }else{
+            //只在修改密码时启动
+            if($this->pwd){
+                $this->password_hash=$security->generatePasswordHash($this->pwd);
+                $this->auth_key=$security->generateRandomString();
+            }
+        }
+        return parent::beforeSave($insert);
+    }
+    public function validateLogin($loginUser){
+        $security=\Yii::$app->getSecurity();
+        if($security->validatePassword($loginUser->pwd,$this->password_hash)){
+            $this->touch('last_login_time');
+            $this->last_login_ip=\Yii::$app->request->getUserIP();
+            return $this->save();
+        }
+        $this->addError('pwd','密码错误');
+        return false;
     }
 }

@@ -25,12 +25,9 @@ class UserController extends \yii\web\Controller
         $user=new User();
         $request=\Yii::$app->request;
         if($request->isPost){
-            $user->scenario='edit';
+            //声明使用情景
+            $user->scenario='add';
             if($user->load($request->post()) && $user->validate()){
-                $security=\Yii::$app->getSecurity();
-                $user->password_hash=$security->generatePasswordHash($user->password_hash);
-                //生成一个用于自动登录的令牌
-                $user->auth_key=$security->generateRandomString();
                 $user->save(false);
                 return $this->redirect(['index']);
             }
@@ -47,10 +44,6 @@ class UserController extends \yii\web\Controller
         if($request->isPost){
             $user->scenario='edit';
             if($user->load($request->post()) && $user->validate()){
-                $security=\Yii::$app->getSecurity();
-                if($user->pwd){
-                    $user->password_hash=$security->generatePasswordHash($user->pwd);
-                }
                 $user->save(false);
                 return $this->redirect(['index']);
             }
@@ -67,23 +60,19 @@ class UserController extends \yii\web\Controller
         $user=new User();
         $request=\Yii::$app->request;
         if($request->isPost){
-            $remember=$request->post('remember');
+            $remember=$request->post('remember',false);
             $user->scenario='login';
             if($user->load($request->post()) && $user->validate()){
-                $Luser=$user::find()->orFilterWhere(['username'=>$user->login])->orFilterWhere(['email'=>$user->login])->One();
+                $Luser=User::find()->orFilterWhere(['username'=>$user->login])->orFilterWhere(['email'=>$user->login])->One();
                 if($Luser->status==-1){
                     throw new HttpException(403,'该帐号被禁止登录');
                 }
-                $security=\Yii::$app->getSecurity();
-                if($security->validatePassword($user->pwd,$Luser->password_hash)){
-                    $Luser->touch('last_login_time');
-                    $Luser->last_login_ip=\Yii::$app->request->getUserIP();
-                    $Luser->save();
+                if($Luser->validateLogin($user)){
                     \Yii::$app->user->login($Luser,$remember?60*60:0);
-                    $this->goBack();
+                    return $this->redirect(['index']);
                 }
+                $user->addError('pwd','密码错误');
             }
-            var_dump($user->errors);
         }
         return $this->render('login',['user'=>$user]);
     }
@@ -110,7 +99,8 @@ class UserController extends \yii\web\Controller
                         'allow'=>true,
                         'actions'=>['logout'],
                         'roles'=>['@']
-                    ],[
+                    ],
+                    [
                         'allow'=>true,
                         'roles'=>['@']
                     ]
@@ -132,5 +122,25 @@ class UserController extends \yii\web\Controller
         var_dump(\Yii::$app->user->isGuest,\Yii::$app->user->id);
         $cookie=\Yii::$app->request->cookies;
         var_dump($cookie);
+    }
+    public function actionChangePassword(){
+        /**
+         * @var $identity User
+         */
+        $identity=\Yii::$app->user->identity;
+        $identity->scenario=$identity::SCENARIO_CHANGE_PASSWORD;
+        $request=\Yii::$app->request;
+        if($request->isPost && $identity->load($request->post()) && $identity->validate()){
+            $security=\Yii::$app->getSecurity();
+            if($security->validatePassword($identity->oldPwd,$identity->password_hash)){
+                $identity->save(false);
+                \Yii::$app->user->logout();
+                \Yii::$app->session->setFlash('success','修改密码成功,请重新登录');
+                return $this->redirect('login');
+            }else{
+                $identity->addError('oldPwd','密码错误');
+            }
+        }
+        return $this->render('change_password',['identity'=>$identity]);
     }
 }

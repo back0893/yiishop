@@ -11,7 +11,9 @@ use backend\models\GoodsIntro;
 use backend\models\Search;
 use flyok666\qiniu\Qiniu;
 use flyok666\uploadifive\UploadAction;
+use yii\data\ActiveDataProvider;
 use yii\data\Pagination;
+use yii\data\Sort;
 use yii\web\HttpException;
 
 class GoodsController extends \yii\web\Controller
@@ -19,14 +21,27 @@ class GoodsController extends \yii\web\Controller
     public function actionIndex()
     {
         $search=new Search();
+        $sort=new Sort(
+          [
+              'attributes'=>[
+                  'name'=>['label'=>'名称'],
+                  'price'=>[
+                      'asc'=>['shop_price'=>SORT_ASC,'market_price'=>SORT_ASC],
+                      'desc'=>['shop_price'=>SORT_DESC,'market_price'=>SORT_DESC],
+                      'default'=>SORT_DESC,
+                      'label'=>'价格'
+                  ]
+              ],
+          ]
+        );
         $search->load(\Yii::$app->request->get());
         $query=$search->getSearch();
         $paginate=new Pagination([
             'totalCount'=>$query->count(),
             'defaultPageSize'=>3
         ]);
-        $rows=$query->limit($paginate->limit)->offset($paginate->offset)->orderBy('create_time DESC')->all();
-        return $this->render('index',['rows'=>$rows,'search'=>$search,'paginate'=>$paginate]);
+        $rows=$query->limit($paginate->limit)->offset($paginate->offset)->orderBy($sort->orders)->all();
+        return $this->render('index',['rows'=>$rows,'search'=>$search,'paginate'=>$paginate,'sort'=>$sort]);
     }
     public function actionAdd(){
         $goods=new Goods();
@@ -150,8 +165,31 @@ class GoodsController extends \yii\web\Controller
         ];
     }
     public function actionTest(){
-        \Yii::$app->session->setFlash('success','test');
-        return $this->render('index1');
+        //数据的提供者,用来快速提供排序,分页,和查询结果
+        //query是一个活动记录实例
+        //pagination是分页的配置
+        //sort是排序的配置
+        $provider=new ActiveDataProvider([
+           'query'=>Goods::find(),
+           'pagination'=>[
+               'pageSize'=>2
+           ],
+            'sort'=>[
+                'attributes'=>['name',
+                    'price'=>[
+                        'asc'=>['shop_price'=>SORT_ASC,'market_price'=>SORT_ASC],
+                        'desc'=>['shop_price'=>SORT_DESC,'market_price'=>SORT_DESC],
+                        'default'=>SORT_DESC,
+                        'label'=>'价格'
+                    ]
+                ]
+            ]
+        ]);
+        $sort=$provider->getSort();
+        $paginate=$provider->getPagination();
+        $rows=$provider->getModels();
+        $search=new Search();
+        return $this->render('index1',['rows'=>$rows,'search'=>$search,'paginate'=>$paginate,'sort'=>$sort]);
     }
     public function actionShow($id){
         $name=Goods::find()->select('name')->where(['id'=>$id])->One();
