@@ -33,7 +33,7 @@ function(file, data, response) {
         var tbody=$('tbody');
         var html='';
         html='<tr><td><img src="'+data.fileUrl+'" style="width: 200px"></td>';
-        html+='<td><a href="javascript:void(0)" class="del">删除</a></td></tr>';
+        html+='<td><a href="javascript:void(0)" class="del" data-id="'+data.id+'">删除</a></td></tr>';
         tbody.append(html);
     }
 }

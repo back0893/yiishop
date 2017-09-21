@@ -31,6 +31,8 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
     public $oldPwd;
     //重复密码
     public $rpassword;
+    //用来接受角色,是由角色名组成的数组
+    public $roles;
 
     const SCENARIO_CHANGE_PASSWORD='change_password';
     /**
@@ -68,12 +70,14 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
             [['pwd','oldPwd'],'required','on'=>self::SCENARIO_CHANGE_PASSWORD],
             [['pwd'],'match','pattern'=>'/^(?=.*?[a-z])(?=.*?[0-9])[a-z0-9]+$/','message'=>'请最少包含一个字符和数组','on'=>self::SCENARIO_CHANGE_PASSWORD],
             ['rpassword','compare','compareAttribute'=>'pwd','message'=>'2次密码不相同','on'=>self::SCENARIO_CHANGE_PASSWORD],
+            ['oldPwd','validateOldPwd','on'=>self::SCENARIO_CHANGE_PASSWORD],
             //通用规则,当没有值会跳过验证规则
             [['status'], 'integer'],
             [['username', 'password_hash', 'email','pwd'], 'string', 'max' => 255,'min'=>4,'tooShort'=>'位数少于4位'],
             ['email','email'],
             [['username','email'], 'unique'],
-            ['rpassword','compare','compareAttribute'=>'password_hash','message'=>'2次密码不相同','on'=>'edit']
+            ['rpassword','compare','compareAttribute'=>'password_hash','message'=>'2次密码不相同','on'=>'edit'],
+            ['roles','safe'],
         ];
     }
 
@@ -84,7 +88,7 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
     {
 
         return [
-            'id' => 'ID',
+            'roles'=>'角色权限',
             'username' => '用户名',
             'password_hash' => '密码',
             'email' => '邮箱',
@@ -188,6 +192,13 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
         }
         return parent::beforeSave($insert);
     }
+    public function afterSave($insert, $changedAttributes)
+    {
+        $userId=$this->id?$this->id:$changedAttributes['id'];
+        $this->assign($userId);
+        parent::afterSave($insert, $changedAttributes);
+    }
+
     public function validateLogin($loginUser){
         $security=\Yii::$app->getSecurity();
         if($security->validatePassword($loginUser->pwd,$this->password_hash)){
@@ -197,5 +208,28 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
         }
         $this->addError('pwd','密码错误');
         return false;
+    }
+    //自定义验证规则至考虑验证不通过的情况,验证不通过需要添加错误
+    public function validateOldPwd(){
+        $security=\Yii::$app->getSecurity();
+        if(!$security->validatePassword($this->oldPwd,$this->password_hash)){
+            $this->addError('oldPwd','密码错误');
+        }
+    }
+    //需要在角色保存后调用,因为此时$this->id上才会有值
+    public function assign($userId){
+        $auth=\Yii::$app->authManager;
+        $tr1=\Yii::$app->db->beginTransaction();
+        try {
+            //先解除user绑定的说有角色
+            $auth->revokeAll($userId);
+            //解除后在绑定
+            foreach ($this->roles as $role) {
+                var_dump($auth->assign($auth->getRole($role), $userId));
+            }
+            $tr1->commit();
+        }catch (\Exception $e){
+            $tr1->rollBack();
+        }
     }
 }

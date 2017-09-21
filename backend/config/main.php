@@ -45,8 +45,18 @@ return [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                [
+                    'pattern'=>'<controller:\w+>/<action:\w+>/<id:\d+>',
+                    'route'=>'<controller>/<action>',
+                    'defaults'=>['id'=>0]
+                ]
             ],
         ],
     ],
     'params' => $params,
+    //将行为附加到配置里,必须是以as name开始
+    'as rbacFilter'=>[
+        'class'=>\backend\components\RbacFilter::className(),
+        'except'=>['user/login','user/logout','site/error','debug/*'],
+    ]
 ];

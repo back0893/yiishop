@@ -13,5 +13,7 @@ if(\Yii::$app->controller->action->id=='add'){
 }
 echo $form->field($user,'email');
 echo $form->field($user,'status')->radioList([2=>'超级管理员',1=>'管理员',0=>'员工']);
+//echo \yii\helpers\Html::activeCheckboxList($user,'roles',$roles);
+echo $form->field($user,'roles')->checkboxList($roles);
 echo \yii\bootstrap\Html::submitButton('提交');
 \yii\bootstrap\ActiveForm::end();

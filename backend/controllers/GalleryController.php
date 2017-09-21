@@ -4,6 +4,7 @@ use flyok666\uploadifive\UploadAction;
 use yii\web\Controller;
 use backend\models\GoodsGallery;
 use backend\models\Goods;
+use flyok666\qiniu\Qiniu;
 
 class GalleryController extends Controller{
     public function actionGallery($id){
@@ -53,12 +54,16 @@ class GalleryController extends Controller{
                 ],
                 'afterSave' => function (UploadAction $action) {
                     //显示回显,直接在后台保存值数据库
-                    $path=$action->getWebUrl();
+                    $qiniu = new Qiniu(\Yii::$app->params['qiniu']);
+                    $key = $action->getFilename();
+                    $qiniu->uploadFile($action->getSavePath(),$key);
+                    $url = $qiniu->getLink($key);
                     $Gallery=new GoodsGallery();
                     $Gallery->goods_id=$_REQUEST['goods_id'];
-                    $Gallery->path=$path;
-                    $Gallery->insert();
-                    $action->output['fileUrl'] = $path;
+                    $Gallery->path=$url;
+                    $Gallery->save(false);
+                    $action->output['fileUrl'] = $url;
+                    $action->output['id'] = $Gallery->id;
 //                    $action->getFilename(); // "image/yyyymmddtimerand.jpg"
 //                    $action->getWebUrl(); //  "baseUrl + filename, /upload/image/yyyymmddtimerand.jpg"
 //                    $action->getSavePath(); // "/var/www/htdocs/upload/image/yyyymmddtimerand.jpg"

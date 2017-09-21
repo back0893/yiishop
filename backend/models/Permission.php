@@ -9,9 +9,28 @@ class Permission extends Model{
     public function rules()
     {
         return [
-            ['name','required'],
-            ['desc','string']
+            [['name','desc'],'required'],
+            ['name','validateNameUnique']
         ];
+    }
+    public function save(){
+        $auth=\Yii::$app->authManager;
+        $permission = $auth->createPermission($this->name);
+        $permission->description = $this->desc;
+        return $auth->add($permission);
+    }
+    public function validateNameUnique(){
+        $auth=\Yii::$app->authManager;
+        $selfName=\Yii::$app->request->get('name','');
+        if($this->name!=$selfName &&$auth->getPermission($this->name)){
+            $this->addError('name','权限已经存在');
+        }
+    }
+    public function update($permission,$oldname){
+        $auth=\Yii::$app->authManager;
+        $permission->name=$this->name;
+        $permission->description=$this->desc;
+        $auth->update($oldname,$permission);
     }
     public function attributeLabels()
     {

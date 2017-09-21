@@ -49,8 +49,8 @@ class GoodsController extends \yii\web\Controller
         $request=\Yii::$app->request;
         if($request->isPost){
             $goods->load($request->post());
-            if(!GoodsCategory::findOne(['id'=>$goods->goods_category_id])->isLeaf()){
-                throw new HttpException('403','禁止添加');
+            if(!GoodsCategory::find()->where(['id'=>$goods->goods_category_id,'depth'=>2])){
+                $goods->addError('goods_category_id','禁止添加');
             }
             $goodsIntro->load($request->post());
             if($goods->validate() && $goodsIntro->validate()){
@@ -84,25 +84,29 @@ class GoodsController extends \yii\web\Controller
         $request=\Yii::$app->request;
         if($request->isPost){
             $goods->load($request->post());
-            $goodsIntro->load($request->post());
-            if($goods->validate() && $goodsIntro->validate()){
-                $count=GoodsDayCount::getCount();
-                //获得一个事物实例
-                $trans=\Yii::$app->db->beginTransaction();
-                $valiate=$goods->save();
-                $goodsIntro->goods_id=$goods->id;
-                $valiate=$goodsIntro->save()&&$valiate;
+            if(!GoodsCategory::find()->where(['id'=>$goods->goods_category_id,'depth'=>2])->One()){
+                $goods->addError('goods_category_id','禁止添加,商品只能填在最底层');
+            }else{
+                $goodsIntro->load($request->post());
+                if($goods->validate() && $goodsIntro->validate()){
+                    $count=GoodsDayCount::getCount();
+                    //获得一个事物实例
+                    $trans=\Yii::$app->db->beginTransaction();
+                    $valiate=$goods->save();
+                    $goodsIntro->goods_id=$goods->id;
+                    $valiate=$goodsIntro->save()&&$valiate;
 //                判断提交成功,成功才会提交
-                if($valiate){
-                    $trans->commit();
-                }
-                else{
-                    $trans->rollBack();
-                    var_dump($goods->errors,$goodsIntro->errors);exit;
+                    if($valiate){
+                        $trans->commit();
+                    }
+                    else{
+                        $trans->rollBack();
+                        var_dump($goods->errors,$goodsIntro->errors);exit;
 
+                    }
+                    \Yii::$app->session->setFlash('success', '修改成功');
+                    $this->redirect(['goods/index']);
                 }
-                \Yii::$app->session->setFlash('success', '修改成功');
-                $this->redirect(['goods/index']);
             }
         }
         $ztree=json_encode(GoodsCategory::getZtree());
@@ -126,6 +130,9 @@ class GoodsController extends \yii\web\Controller
         return [
             'upload' => [
                 'class' => 'kucha\ueditor\UEditorAction',
+                'config'=>[
+                    'imageUrlPrefix'=>'http://www.yiiadmin.com'
+                    ]
             ],
             's-upload' => [
                 'class' => UploadAction::className(),

@@ -6,6 +6,7 @@ use backend\models\User;
 use yii\data\Pagination;
 use yii\filters\AccessControl;
 use yii\filters\AccessRule;
+use yii\helpers\ArrayHelper;
 use yii\web\HttpException;
 
 class UserController extends \yii\web\Controller
@@ -24,6 +25,7 @@ class UserController extends \yii\web\Controller
     public function actionAdd(){
         $user=new User();
         $request=\Yii::$app->request;
+        $auth=\Yii::$app->authManager;
         if($request->isPost){
             //声明使用情景
             $user->scenario='add';
@@ -33,7 +35,8 @@ class UserController extends \yii\web\Controller
             }
             var_dump($user->errors,$user->password_hash,$user->rpassword);exit;
         }
-        return $this->render('add',['user'=>$user]);
+        $roles=ArrayHelper::map($auth->getRoles(),'name','description');
+        return $this->render('add',['user'=>$user,'roles'=>$roles]);
     }
     public function actionEdit($id){
         $user=User::find()->select(['username', 'email','status','password_hash','id'])->where(['id'=>$id])->One();
@@ -44,12 +47,17 @@ class UserController extends \yii\web\Controller
         if($request->isPost){
             $user->scenario='edit';
             if($user->load($request->post()) && $user->validate()){
+//                var_dump($user->roles);exit;
                 $user->save(false);
                 return $this->redirect(['index']);
             }
             var_dump($user->errors);exit;
         }
-        return $this->render('add',['user'=>$user]);
+        $auth=\Yii::$app->authManager;
+        $roles=ArrayHelper::map($auth->getRoles(),'name','description');
+        //获取用户本身的角色
+        $user->roles=ArrayHelper::getColumn($auth->getRolesByUser($user->id),'name');
+        return $this->render('add',['user'=>$user,'roles'=>$roles]);
 
     }
     public function actionLogin(){
@@ -131,14 +139,11 @@ class UserController extends \yii\web\Controller
         $identity->scenario=$identity::SCENARIO_CHANGE_PASSWORD;
         $request=\Yii::$app->request;
         if($request->isPost && $identity->load($request->post()) && $identity->validate()){
-            $security=\Yii::$app->getSecurity();
-            if($security->validatePassword($identity->oldPwd,$identity->password_hash)){
+            {
                 $identity->save(false);
                 \Yii::$app->user->logout();
                 \Yii::$app->session->setFlash('success','修改密码成功,请重新登录');
                 return $this->redirect('login');
-            }else{
-                $identity->addError('oldPwd','密码错误');
             }
         }
         return $this->render('change_password',['identity'=>$identity]);

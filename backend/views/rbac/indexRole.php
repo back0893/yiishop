@@ -10,6 +10,7 @@ $this->registerJsFile('http://cdn.datatables.net/plug-ins/28e7751dbec/integratio
 
 $p=json_encode($roles);
 $edit=\yii\helpers\Url::to(['rbac/edit-role']);
+$del=\yii\helpers\Url::to(['rbac/del-role']);
 $js=<<<JS
 $(document).ready( function () {
     t=$('#table_id_example').DataTable(
@@ -41,7 +42,7 @@ $(document).ready( function () {
         //所有单元格node
         .nodes().each(function(cell, i) {
             var name=$(cell).closest('tr').find('td:first').text();
-            cell.innerHTML = '<a href="{$edit}?name='+name+'">修改</a>';
+            cell.innerHTML = '<a class="btn btn-info" href="{$edit}?name='+name+'">修改</a><a href="{$del}?name='+name+'" class="btn btn-danger">删除</a>';
     });
 }).draw();
 

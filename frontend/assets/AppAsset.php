@@ -12,14 +12,14 @@ class AppAsset extends AssetBundle
     public $basePath = '@webroot';
     public $baseUrl = '@web';
     public $css = [
-        'css/site.css',
-        'tree/css/zTreeStyle/zTreeStyle.css'
+        '/style/base.css',
+        '/style/global.css',
+        '/style/header.css',
+        '/style/footer.css'
     ];
     public $js = [
-        'tree/js/jquery.ztree.core.min.js'
     ];
     public $depends = [
-        'yii\web\YiiAsset',
-        'yii\bootstrap\BootstrapAsset',
+        'yii\web\JqueryAsset',
     ];
 }

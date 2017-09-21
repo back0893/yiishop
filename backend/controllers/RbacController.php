@@ -1,6 +1,7 @@
 <?php
 namespace backend\controllers;
 
+use backend\components\RbacFilter;
 use backend\models\Role;
 use backend\models\User;
 use backend\rbac\AdminRule;
@@ -23,20 +24,12 @@ class RbacController extends Controller
     {
         //创建接受数据的模型
         $model = new Permission();
-        //获得权限管理模型
-        $auth = \Yii::$app->authManager;
         //添加想要的权限名称
         $request = \Yii::$app->request;
         if ($model->load($request->post()) && $model->validate()) {
-            if($auth->getPermission($model->name)){
-                $model->addError('name','权限已经存在');
-            }else{
-                $permission = $auth->createPermission($model->name);
-                $permission->description = $model->desc;
-                $auth->add($permission);
-                \Yii::$app->session->setFlash('success', '添加权限' . $model->name . '成功');
-                return $this->redirect(['index-permission']);
-            }
+            $model->save();
+            \Yii::$app->session->setFlash('success', '添加权限' . $model->name . '成功');
+            return $this->redirect(['index-permission']);
         }
         return $this->render('createPermission', ['model' => $model]);
     }
@@ -48,16 +41,24 @@ class RbacController extends Controller
         }
         $model = new Permission();
         $request = \Yii::$app->request;
-        if($request->isPost && $model->load($request->post())){
-            $permission->description=$model->desc;
-            $auth->update($permission->name,$permission);
+        if($request->isPost && $model->load($request->post()) && $model->validate()){
+            $oldname=$permission->name;
+            $model->update($permission,$oldname);
             return $this->redirect(['rbac/index-permission']);
         }
         $model->desc=$permission->description;
         $model->name=$permission->name;
         return $this->render('createPermission',['model'=>$model]);
     }
-
+    public function actionDelPermission($name){
+        $auth = \Yii::$app->authManager;
+        $permission=$auth->getPermission($name);
+        if(!$permission){
+            throw new HttpException(404,'没有这个权限:'.$name);
+        }
+        $auth->remove($permission);
+        $this->redirect(['index-permission']);
+    }
     public function actionIndexRole(){
         $auth=\Yii::$app->authManager;
         $roles=array_values($auth->getRoles());
@@ -69,18 +70,9 @@ class RbacController extends Controller
         $auth = \Yii::$app->authManager;
         $request = \Yii::$app->request;
         if ($model->load($request->post()) && $model->validate()) {
-            if($auth->getRole($model->name)){
-                $model->addError('name','角色已经存在');
-            }else{
-                $role = $auth->createRole($model->name);
-                $role->description = $model->desc;
-                $auth->add($role);
-                foreach ($model->permissions as $permission){
-                    $auth->addChild($role,$auth->getPermission($permission));
-                }
-                \Yii::$app->session->setFlash('success', '添加角色' . $model->name . '成功');
-                return $this->redirect(['index']);
-            }
+            $model->save();
+            \Yii::$app->session->setFlash('success', '添加角色' . $model->name . '成功');
+            return $this->redirect(['index-role']);
         }
         $temp=$auth->getPermissions();
         $permissions=ArrayHelper::map($temp,'name','description');
@@ -96,28 +88,26 @@ class RbacController extends Controller
         $model = new Role();
         $request = \Yii::$app->request;
         if ($model->load($request->post()) && $model->validate()) {
-            $oldname=$role->name;
-            $role->name=$model->name;
-            $role->description=$model->desc;
-            //这里需要先获得旧的name,以旧的name为条件来修改
-            $auth->update($oldname,$role);
-            //先解除原有的角色对应的权限
-            $auth->removeChildren($role);
-            //解除完权限后,在增添权限
-            foreach ($model->permissions as $permission){
-                $auth->addChild($role,$auth->getPermission($permission));
-            }
-
+            $model->update($role);
             \Yii::$app->session->setFlash('success', '修改角色' . $model->name . '成功');
             return $this->redirect(['index-role']);
         }
         $temp=$auth->getPermissions();
         $model->name=$role->name;
         $model->desc=$role->description;
-        $permissions=ArrayHelper::map($auth->getPermissionsByRole($role->name),'name','description');
-        $model->permissions=array_keys($permissions);
+        $permissions=ArrayHelper::getColumn($auth->getPermissionsByRole($role->name),'name');
+        $model->permissions=$permissions;
 //        var_dump($model->permissions);exit;
         return $this->render('createRole', ['model' => $model,'permissions'=>ArrayHelper::map($temp,'name','description')]);
+    }
+    public function actionDelRole($name){
+        $auth = \Yii::$app->authManager;
+        $role=$auth->getRole($name);
+        if(!$role){
+            throw new HttpException(404,'没有这个角色:'.$name);
+        }
+        $auth->remove($role);
+        $this->redirect(['index-role']);
     }
     public function actionTest(){
         $auth=\Yii::$app->authManager;
@@ -136,4 +126,5 @@ class RbacController extends Controller
         //获得在控制器中启动的action的id
         var_dump(\Yii::$app->user->can($this->action->id));
     }
+
 }
