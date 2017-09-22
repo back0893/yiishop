@@ -9,93 +9,14 @@ $this->registerCssFile('/style/list.css');
 $this->registerCssFile('/style/common.css');
 $this->registerCssFile('/style/bottomnav.css');
 $this->registerJsFile('/js/header.js',['depends'=>'yii\web\JqueryAsset']);
-$this->registerJsFile('/js/list.js',['depends'=>'yii\web\JqueryAsset'])
+$this->registerJsFile('/js/list.js',['depends'=>'yii\web\JqueryAsset']);
+$this->registerJsFile('/myjs/list.js',['depends'=>'yii\web\JqueryAsset']);
+$request=Yii::$app->request;
 ?>
 	<!-- 头部 start -->
 	<div class="header w1210 bc mt15">
 		<!-- 头部上半部分 start 包括 logo、搜索、用户中心和购物车结算 -->
-		<div class="logo w1210">
-			<h1 class="fl"><a href="index.html"><img src="/images/logo.png" alt="京西商城"></a></h1>
-			<!-- 头部搜索 start -->
-			<div class="search fl">
-				<div class="search_form">
-					<div class="form_left fl"></div>
-					<form action="" name="serarch" method="get" class="fl">
-						<input type="text" class="txt" value="请输入商品关键字" /><input type="submit" class="btn" value="搜索" />
-					</form>
-					<div class="form_right fl"></div>
-				</div>
-				
-				<div style="clear:both;"></div>
-
-				<div class="hot_search">
-					<strong>热门搜索:</strong>
-					<a href="">D-Link无线路由</a>
-					<a href="">休闲男鞋</a>
-					<a href="">TCL空调</a>
-					<a href="">耐克篮球鞋</a>
-				</div>
-			</div>
-			<!-- 头部搜索 end -->
-
-			<!-- 用户中心 start-->
-			<div class="user fl">
-				<dl>
-					<dt>
-						<em></em>
-						<a href="">用户中心</a>
-						<b></b>
-					</dt>
-					<dd>
-						<div class="prompt">
-							您好，请<a href="">登录</a>
-						</div>
-						<div class="uclist mt10">
-							<ul class="list1 fl">
-								<li><a href="">用户信息></a></li>
-								<li><a href="">我的订单></a></li>
-								<li><a href="">收货地址></a></li>
-								<li><a href="">我的收藏></a></li>
-							</ul>
-
-							<ul class="fl">
-								<li><a href="">我的留言></a></li>
-								<li><a href="">我的红包></a></li>
-								<li><a href="">我的评论></a></li>
-								<li><a href="">资金管理></a></li>
-							</ul>
-
-						</div>
-						<div style="clear:both;"></div>
-						<div class="viewlist mt10">
-							<h3>最近浏览的商品：</h3>
-							<ul>
-								<li><a href=""><img src="/images/view_list1.jpg" alt="" /></a></li>
-								<li><a href=""><img src="/images/view_list2.jpg" alt="" /></a></li>
-								<li><a href=""><img src="/images/view_list3.jpg" alt="" /></a></li>
-							</ul>
-						</div>
-					</dd>
-				</dl>
-			</div>
-			<!-- 用户中心 end-->
-
-			<!-- 购物车 start -->
-			<div class="cart fl">
-				<dl>
-					<dt>
-						<a href="">去购物车结算</a>
-						<b></b>
-					</dt>
-					<dd>
-						<div class="prompt">
-							购物车中还没有商品，赶紧选购吧！
-						</div>
-					</dd>
-				</dl>
-			</div>
-			<!-- 购物车 end -->
-		</div>
+		<?=$this->render('search')?>
 		<!-- 头部上半部分 end -->
 		
 		<div style="clear:both;"></div>
@@ -414,19 +335,26 @@ $this->registerJsFile('/js/list.js',['depends'=>'yii\web\JqueryAsset'])
 			<!-- 商品列表 end-->
 
 			<!-- 分页信息 start -->
+            <div class="mt20">
+            </div>
 			<div class="page mt20">
-				<a href="">首页</a>
-				<a href="">上一页</a>
-				<a href="">1</a>
-				<a href="">2</a>
-				<a href="" class="cur">3</a>
-				<a href="">4</a>
-				<a href="">5</a>
-				<a href="">下一页</a>
-				<a href="">尾页</a>&nbsp;&nbsp;
+                <?php
+                    $cates=$request->get('cates',1);
+                    $currentPage=$request->get('page',1);
+                    $pre=(($currentPage-1)<1)?1:($currentPage-1);
+                    $next=(($currentPage+1)>$paginate)?$paginate:$currentPage+1;
+                    $keyWord=$request->get('keyWord','');
+                ?>
+				<a href="<?=Url::to(['list','cates'=>$cates,'page'=>1,'keyWord'=>$keyWord])?>">首页</a>
+				<a href="<?=Url::to(['list','cates'=>$cates,'page'=>$pre,'keyWord'=>$keyWord])?>">上一页</a>
+				<?php for($page=1;$page<=$paginate;$page++):?>
+                    <a href="<?=Url::to(['list','cates'=>$cates,'page'=>$page,'keyWord'=>$keyWord])?>" <?=($currentPage==$page)?'class="cur"':''?> ><?=$page?></a>
+                <?php endfor?>
+				<a href="<?=Url::to(['list','cates'=>$cates,'page'=>$next,'keyWord'=>$keyWord])?>">下一页</a>
+				<a href="<?=Url::to(['list','cates'=>$cates,'page'=>$paginate,'keyWord'=>$keyWord])?>">尾页</a>&nbsp;&nbsp;
 				<span>
-					<em>共8页&nbsp;&nbsp;到第 <input type="text" class="page_num" value="3"/> 页</em>
-					<a href="" class="skipsearch" href="javascript:;">确定</a>
+					<em>共<?=$paginate?>页&nbsp;&nbsp;到第 <input type="text" class="page_num" value="1"/> 页</em>
+					<a class="skipsearch" id="skipsearch" href="javascript:void(0);">确定</a>
 				</span>
 			</div>
 			<!-- 分页信息 end -->

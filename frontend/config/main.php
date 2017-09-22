@@ -28,7 +28,20 @@ return [
                 $login->last_login_ip=\Yii::$app->request->getUserIP();
                 //这里不要开启验证,直接保存就好了
                 $login->save(false);
-            }
+                $event->sender->trigger('cookie2db');
+            },
+            'on cookie2db'=>[
+                '\app\models\Cart',
+                'cookie2db'
+            ],
+            'on myEvent'=>function($event){
+              echo '这是我自己配置的myEvent事件<br>';
+            },
+            'as myBehaviors'=>[
+                'class'=>\frontend\components\MyBehaviors::className(),
+                'pro1'=>'粗话化属性1',
+                'pro2'=>'粗话化属性2'
+            ],
         ],
         'session' => [
             // this is the name of the session cookie used for login on the frontend

@@ -17,10 +17,13 @@ class IndexController extends \yii\web\Controller
         $p=GoodCates::generateNodes();
         var_dump($p);
     }
-    public function actionList($cates){
+    public function actionList(){
+        $request=\Yii::$app->request;
+        $cates=$request->get('cates',1);
+        $keyWord=$request->get('keyWord',null);
         $ids=GoodCates::getChildrenId($cates);
-        $goods=Goods::getGoods($ids);
-        return $this->render('list',['goods'=>$goods]);
+        list($goods,$paginate)=Goods::getGoods($ids,$keyWord);
+        return $this->render('list',['goods'=>$goods,'paginate'=>$paginate]);
     }
     public function actionGoods($id){
         $goods=Goods::findOne(['id'=>$id]);

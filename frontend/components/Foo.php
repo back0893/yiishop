@@ -19,4 +19,15 @@ class Foo extends Component{
     public static function op(){
         echo '这是一个foo上静态方法<br>';
     }
+    public function behaviors()
+    {
+        return [
+            'mybehaviors'=>[
+                'class'=>MyBehaviors::className()
+            ]
+        ];
+    }
+    public function be(){
+        echo('这是foo中be方法<br>');
+    }
 }

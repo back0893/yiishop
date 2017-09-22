@@ -1,7 +1,7 @@
 <?php
 
 namespace frontend\controllers;
-
+use app\models\Cart;
 use frontend\models\Member;
 
 class MemberController extends \yii\web\Controller
@@ -43,7 +43,7 @@ class MemberController extends \yii\web\Controller
                 $security=\Yii::$app->security;
                 if($security->validatePassword($model->password,$login->password_hash)){
                     \Yii::$app->user->login($login,$model->remember?3600:0);
-                    return $this->redirect(['location/address']);
+                    return $this->goBack(['index/index']);
                 }
                 $model->addError('password','密码错误');
             }

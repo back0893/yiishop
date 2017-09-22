@@ -25,6 +25,17 @@ class TestController extends Controller{
     public function testEven(){
         echo '这是test控制器中的附加事件<br>';
     }
+    public function actionBehaviors(){
+        $foo=new Foo();
+        $foo->pro2='123';
+        var_dump($foo->pro2);
+        $foo->getOwner();
+    }
+    public function actionAttach(){
+        \Yii::$app->user->trigger('myEvent');
+        echo \Yii::$app->user->pro1;
+        echo \Yii::$app->user->pro2;
+    }
 }
 //function Extra(){
 //    echo '这是额外的普通方法<br>';

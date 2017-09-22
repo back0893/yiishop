@@ -13,6 +13,7 @@ use Yii;
  * @property integer $city
  * @property integer $town
  * @property string $tel
+ * @property string $address
  * @property integer $status
  */
 class Address extends \yii\db\ActiveRecord

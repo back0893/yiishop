@@ -45,9 +45,15 @@ class Goods extends \yii\db\ActiveRecord
             [['market_price', 'shop_price'], 'number'],
             [['name', 'sn'], 'string', 'max' => 20],
             [['logo'], 'string', 'max' => 255],
+            ['goods_category_id','validateDepth']
         ];
     }
-
+    public function validateDepth(){
+        $category=GoodsCategory::find()->select(['depth'])->where(['id'=>$this->goods_category_id])->one();
+        if($category->depth!=2){
+            $this->addError('goods_category_id','商品只能添加在最低级节点');
+        }
+    }
     /**
      * @inheritdoc
      */
