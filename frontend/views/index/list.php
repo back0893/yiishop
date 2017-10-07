@@ -30,7 +30,7 @@ $request=Yii::$app->request;
 					<em></em>
 				</div>
 
-                <?=$this->render('catbd')?>
+                <?=Yii::$app->controller->CatBd();?>
 
 			</div>
 			<!--  商品分类部分 end--> 

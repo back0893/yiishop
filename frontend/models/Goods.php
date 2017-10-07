@@ -10,10 +10,10 @@ class Goods extends ActiveRecord {
     public static function tableName(){
             return 'goods';
     }
-    static function getGoods($ids,$keyWord){
+    static function getGoods($ids,$goodsId){
         $goods=self::find();
-        if($keyWord){
-            $goods->andWhere(['like','name',$keyWord]);
+        if(!empty($goodsId)){
+            $goods->andWhere(['like','name',$goodsId]);
         }
 //        foreach ($ids as $id){
 //            $goods->orWhere('goods_category_id='.$id);

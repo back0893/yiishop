@@ -4,8 +4,18 @@
 use yii\helpers\Html;
 use yii\helpers\Url;
 use frontend\assets\AppAsset;
-
 AppAsset::register($this);
+$isGuest=Url::to(['member/is-guest'],true);
+$logout=Url::to(['member/logout'],true);
+$js=<<<JS
+    $.getJSON("{$isGuest}",function(data){
+        if(data.isGuest){
+             $("#isGuest").html('<li id="isGuest">'+
+                           '<a href="{$logout}">'+data.username+'安全退出</a></li>');
+        }
+    });
+JS;
+$this->registerJs($js);
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
@@ -27,15 +37,9 @@ AppAsset::register($this);
             </div>
             <div class="topnav_right fr">
                 <ul>
-                    <?php if(Yii::$app->user->isGuest):?>
-                    <li>您好，欢迎来到京西！[<a href="<?=Url::to(['member/login'])?>">登录</a>] [<a href="<?=Url::to(['member/register'])?>">免费注册</a>] </li>
-                    <?php else:?>
-                        <li>
-                           <a href="<?=Url::to(['member/logout'])?>"><?=Yii::$app->user->identity->username?>安全退出</a>
-                        </li>
-                    <?php endif;?>
+                    <li id="isGuest">您好，欢迎来到京西！[<a href="<?=Url::to(['member/login'])?>">登录</a>] [<a href="<?=Url::to(['member/register'])?>">免费注册</a>] </li>
                     <li class="line">|</li>
-                    <li>我的订单</li>
+                    <li><a href="<?=Url::to(['cart/order-info'])?>">我的订单</a></li>
                     <li class="line">|</li>
                     <li>客户服务</li>
 

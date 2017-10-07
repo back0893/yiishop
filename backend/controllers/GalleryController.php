@@ -16,6 +16,7 @@ class GalleryController extends Controller{
         $id=\Yii::$app->request->post('id',0);
         $id=trim($id);
         if($id){
+            GoodsGallery::findOne(['id'=>$id])->UnlinkGoods();
             if(GoodsGallery::deleteAll(['id'=>$id])){
                 echo json_encode(['error'=>0,'msg'=>'delete ok']);
             };

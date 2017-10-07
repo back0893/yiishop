@@ -3,11 +3,11 @@
 namespace frontend\controllers;
 
 use app\models\Cart;
-use app\models\Order;
-use app\models\OrderGoods;
+use frontend\models\Order;
+use frontend\models\OrderGoods;
 use yii\base\Exception;
 use yii\filters\AccessControl;
-use app\models\Address;
+use frontend\models\Address;
 
 class CartController extends \yii\web\Controller
 {

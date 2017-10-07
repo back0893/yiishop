@@ -23,6 +23,7 @@ use yii\web\IdentityInterface;
 class Member extends \yii\db\ActiveRecord implements IdentityInterface
 {
     public $password;
+    public $oldPassword;
     public $repassword;
     //这个是图形验证码
     public $checkcode;
@@ -32,12 +33,17 @@ class Member extends \yii\db\ActiveRecord implements IdentityInterface
     const SCENARIO_LOGIN='login';
     const SCENARIO_REGISTER='register';
     const SCENARIO_EDIT='edit';
+    const SCENARIO_API='api';
+    const SCENARIO_EDIT_API='edit_api';
+    const SCENARIO_CHANGE_PASSWORD='chang_password';
     public function setScenario($value)
     {
         $p=parent::setScenario($value);
         $p[self::SCENARIO_REGISTER]=['username','email','password','tel','checkcode','code'];
         $p[self::SCENARIO_EDIT]=['username','email','tel'];
         $p[self::SCENARIO_LOGIN]=['username','password','checkcode','remember'];
+        $p[self::SCENARIO_API]=['username','email','password','tel'];//暂时不验证验证码
+        $p[self::SCENARIO_CHANGE_PASSWORD]=['password','username','oldPassword'];
         return $p;
     }
 
@@ -56,17 +62,23 @@ class Member extends \yii\db\ActiveRecord implements IdentityInterface
     {
         return [
             //注册
-            [['username','email','password','tel'],'required','on'=>self::SCENARIO_REGISTER],
+            [['username','email','password','tel'],'required','on'=>[self::SCENARIO_REGISTER,self::SCENARIO_API]],
+            //验证重复,除了已经有的,注册
+            ['username', 'unique','on'=>[self::SCENARIO_REGISTER,self::SCENARIO_API]],
+            ['email', 'unique','on'=>[self::SCENARIO_REGISTER,self::SCENARIO_API]],
+            ['tel', 'unique','on'=>[self::SCENARIO_REGISTER,self::SCENARIO_API]],
             //修改
             [['username','email','tel'],'required','on'=>self::SCENARIO_EDIT],
             //登录
-            [['username','password','checkcode'],'required','on'=>self::SCENARIO_LOGIN],
+            [['username','password'],'required','on'=>self::SCENARIO_LOGIN],//,'checkcode'展示不验证
             ['username','validateUsername','on'=>self::SCENARIO_LOGIN],
-            //验证重复,除了已经有的,注册
-            ['username', 'unique','on'=>[self::SCENARIO_REGISTER]],
-            ['email', 'unique','on'=>[self::SCENARIO_REGISTER]],
-            ['tel', 'unique','on'=>[self::SCENARIO_REGISTER]],
 
+            //只修改密码,依据用户名
+            [['username','password','oldPassword'],'required','on'=>self::SCENARIO_CHANGE_PASSWORD],
+            [['oldPassword'],'valudateOldPassword','on'=>self::SCENARIO_CHANGE_PASSWORD],
+
+            //api注册
+            [['username','email','password','tel'],'required','on'=>self::SCENARIO_API],
 
             //验证重复,除了已经有的,修改
             ['username', 'unique','filter'=>['!=','username',$this->username],'on'=>[self::SCENARIO_EDIT]],
@@ -78,9 +90,9 @@ class Member extends \yii\db\ActiveRecord implements IdentityInterface
             [['password','email'], 'string', 'max' => 100],
             [['tel'], 'string', 'max' => 11,'min'=>11,'message'=>'非法的手机号'],
             ['!repassword','compare','compareAttribute'=>'password'],
-            ['checkcode','captcha'],
+//            ['checkcode','captcha'],
             ['remember','safe'],
-            ['code','validateSms']
+//            ['code','validateSms']
         ];
     }
     public function validateUsername($attr,$params){
@@ -207,6 +219,12 @@ class Member extends \yii\db\ActiveRecord implements IdentityInterface
         }else{
             //一样注册成功,验证码就失效
             $redis->del($tel);
+        }
+    }
+    public function valudateOldPassword(){
+        $user=\Yii::$app->user->identity;
+        if(!\Yii::$app->security->validatePassword($this->oldPassword,$user->password_hash)){
+            $this->addError('oldPassword','旧密码错误');
         }
     }
 }

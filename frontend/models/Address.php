@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models;
+namespace frontend\models;
 
 use Yii;
 
@@ -32,6 +32,7 @@ class Address extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
+            [['province', 'city', 'town','status','name','address','tel'],'required'],
             [['province', 'city', 'town','status'], 'integer'],
             [['name'], 'string', 'max' => 30],
             [['tel'], 'string', 'max' => 20],
@@ -57,6 +58,7 @@ class Address extends \yii\db\ActiveRecord
         if(!parent::beforeSave($insert)){
             return false;
         }
+        //在保存之前,自动保存user_id,修改默认地址
         $this->user_id=Yii::$app->user->identity->id;
         if($this->status){
             self::updateAll(['status'=>0],['user_id'=>$this->user_id]);

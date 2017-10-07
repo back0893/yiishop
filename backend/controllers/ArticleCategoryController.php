@@ -2,8 +2,8 @@
 
 namespace backend\controllers;
 
-use app\models\Article;
-use app\models\ArticleCategory;
+use backend\models\Article;
+use backend\models\ArticleCategory;
 use yii\data\Pagination;
 
 class ArticleCategoryController extends \yii\web\Controller

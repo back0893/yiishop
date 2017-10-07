@@ -101,6 +101,15 @@ class LocationController extends \yii\web\Controller
         //先检查这个手机号是否是发送过的,没有发送过才会去发送短信
         $code=$redis->get($tel);
         if(!$code){
+            //一个手机号每天只能发送10次
+            if($redis->get($tel.'_last')!=date('d',time())){
+                $redis->set($tel.'_count',0);
+            }
+            $count=$redis->incr($tel.'_count');
+            $redis->set($tel."_last",date('d',time()));
+            if($count>10){
+                $code=null;
+            }
             //发送短信,开始
 //            $code=$this->sendSms();
             //发送短信结束
@@ -108,9 +117,9 @@ class LocationController extends \yii\web\Controller
             $code=1111;
         }
         if(!$code){
-            return json_encode(['error'=>1,'info'=>'手机号无法接受短信']);
+            return json_encode(['error'=>1,'info'=>'无法发送短信']);
         }
-        $redis->set($tel,$code,60*30);
+        $redis->set($tel,$code,60*10);
         return json_encode(['error'=>0,'info'=>'']);
     }
     public function actionCheckSms(){

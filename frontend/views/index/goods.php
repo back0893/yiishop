@@ -11,18 +11,22 @@ $this->registerJsFile('/js/jquery-1.8.3.min.js',['depends'=>'yii\web\JqueryAsset
 $this->registerJsFile('/js/header.js',['depends'=>'yii\web\JqueryAsset']);
 $this->registerJsFile('/js/goods.js',['depends'=>'yii\web\JqueryAsset']);
 $this->registerJsFile('/js/jqzoom-core.js',['depends'=>'yii\web\JqueryAsset']);
+$viewUrl=\yii\helpers\Url::to(['index/view-count'],true);
+$id=$goods->id;
 $js=<<<JS
-	$(function(){
-			$('.jqzoom').jqzoom({
-	            zoomType: 'standard',
-	            lens:true,
-	            preloadImages: false,
-	            alwaysOn:false,
-	            title:false,
-	            zoomWidth:400,
-	            zoomHeight:400
-	        });
-		})
+    $('.jqzoom').jqzoom({
+        zoomType: 'standard',
+        lens:true,
+        preloadImages: false,
+        alwaysOn:false,
+        title:false,
+        zoomWidth:400,
+        zoomHeight:400
+    });
+    $.getJSON('{$viewUrl}',{id:{$id}},function(data){
+        $('#view').text('(已经有'+data.view+'人浏览过)');
+    })
+
 JS;
 $this->registerJs($js);
 ?>
@@ -43,7 +47,7 @@ $this->registerJs($js);
 					<em></em>
 				</div>
 
-                <?=$this->render('catbd')?>
+                <?=Yii::$app->controller->CatBd();?>
 
 			</div>
 			<!--  商品分类部分 end--> 
@@ -216,7 +220,7 @@ $this->registerJs($js);
 						<li class="market_price"><span>定价：</span><em><?=$goods->market_price?></em></li>
 						<li class="shop_price"><span>本店价：</span> <strong><?=$goods->shop_price?></strong> <a href="">(降价通知)</a></li>
 						<li><span>上架时间：</span><?=date('Y-m-d',$goods->create_time)?></li>
-						<li class="star"><span>商品浏览次数：</span> <strong></strong><a href="">(已有<?=$goods->view?>人浏览)</a></li> <!-- 此处的星级切换css即可 默认为5星 star4 表示4星 star3 表示3星 star2表示2星 star1表示1星 -->
+						<li class="star"><span>商品浏览次数：</span> <strong></strong><a id='view' href="">(已有0人浏览)</a></li> <!-- 此处的星级切换css即可 默认为5星 star4 表示4星 star3 表示3星 star2表示2星 star1表示1星 -->
 					</ul>
 					<form action="<?=\yii\helpers\Url::to(['cart/add'])?>" method="get" class="choose">
                         <input type="hidden" name="goods_id" value="<?=$goods->id?>">

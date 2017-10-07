@@ -7,7 +7,8 @@ use yii\helpers\Url;
 $this->registerCssFile('/style/index.css');
 $this->registerCssFile('/style/bottomnav.css');
 $this->registerJsFile('/js/header.js',['depends'=>'yii\web\JqueryAsset']);
-$this->registerJsFile('/js/index.js',['depends'=>'yii\web\JqueryAsset'])
+$this->registerJsFile('/js/index.js',['depends'=>'yii\web\JqueryAsset']);
+$id='cathd';
 
 ?>
 	<!-- 头部 start -->
@@ -26,7 +27,14 @@ $this->registerJsFile('/js/index.js',['depends'=>'yii\web\JqueryAsset'])
 					<h2>全部商品分类</h2>
 					<em></em>
 				</div>
-				<?=$this->render('catbd')?>
+                <?php
+                //2总缓存方式,
+                //1  是yii提供的数据,分段缓存
+                //2  是比较通用的reids缓存,将结果放在redis中
+
+//                    echo $this->render('catbd');
+                    echo Yii::$app->controller->CatBd();
+                ?>
 			</div>
 			<!--  商品分类部分 end--> 
 

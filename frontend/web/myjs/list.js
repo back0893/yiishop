@@ -1,4 +1,4 @@
-var pregWord=/(keyWord=)(\w+)/;
+var pregWord=/(keyWord=)([\w\u4e00-\u9fa5]+)/;
 $('#skipsearch').click(function () {
     var self=$(this);
     var pregPage=/(page=)(\d+)/;
@@ -7,4 +7,4 @@ $('#skipsearch').click(function () {
     query=window.location.search.replace(pregPage,'$1'+page_num.val());
     $(location).prop('href',query)
 });
-$('input[name=keyWord]').val(window.location.search.match(pregWord)[2]);
+$('input[name=keyWord]').val(decodeURI(window.location.search).match(pregWord)[2]);

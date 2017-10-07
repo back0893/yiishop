@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models;
+namespace backend\models;
 
 use Yii;
 use yii\behaviors\TimestampBehavior;
@@ -57,7 +57,7 @@ class Article extends \yii\db\ActiveRecord
         ];
     }
     public function getCategory(){
-        return $this->hasOne(ArticleCategory::className(),['id'=>'article_category_id']);
+        return $this->hasOne(ArticleCategory::className(),['id'=>'article_category_id'])->one();
     }
     public function behaviors()
     {

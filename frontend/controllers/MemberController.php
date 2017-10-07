@@ -55,4 +55,14 @@ class MemberController extends \yii\web\Controller
         \Yii::$app->user->logout();
         return $this->redirect(['login']);
     }
+    public function actionIsGuest(){
+        if(\Yii::$app->user->isGuest){
+            $username='';
+            $isGuest=0;
+        }else{
+            $username=\Yii::$app->user->identity->username;
+            $isGuest=1;
+        }
+        return json_encode(['username'=>$username,'isGuest'=>$isGuest]);
+    }
 }

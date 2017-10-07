@@ -15,6 +15,7 @@ use yii\data\ActiveDataProvider;
 use yii\data\Pagination;
 use yii\data\Sort;
 use yii\web\HttpException;
+use backend\models\SphinxClient;
 
 class GoodsController extends \yii\web\Controller
 {
@@ -207,4 +208,18 @@ class GoodsController extends \yii\web\Controller
         $imgs=GoodsGallery::find()->select('path')->asArray()->where(['goods_id'=>$id])->all();
         return $this->render('show',['name'=>$name,'intro'=>$intro,'imgs'=>$imgs]);
     }
+    public function actionTest2(){
+        $cl = new SphinxClient ();
+        $cl->SetServer ( '127.0.0.1', 9312);
+        $cl->SetConnectTimeout ( 10 );
+        $cl->SetArrayResult ( true );
+        // $cl->SetMatchMode ( SPH_MATCH_ANY);
+        $cl->SetMatchMode ( SPH_MATCH_EXTENDED2);
+        $cl->SetLimits(0, 100);
+        $info = '苹果';
+        $res = $cl->Query($info, 'goods');//shopstore_search
+//print_r($cl);
+        var_dump($res);
+    }
 }
+

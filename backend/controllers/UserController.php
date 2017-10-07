@@ -127,9 +127,7 @@ class UserController extends \yii\web\Controller
         return $this->redirect(['index']);
     }
     public function actionTest(){
-        var_dump(\Yii::$app->user->isGuest,\Yii::$app->user->id);
-        $cookie=\Yii::$app->request->cookies;
-        var_dump($cookie);
+        var_dump(\Yii::getAlias('@frontend/web/html/1.html'));
     }
     public function actionChangePassword(){
         /**

@@ -5,7 +5,7 @@
 				<div class="search_form">
 					<div class="form_left fl"></div>
 					<form action="<?=yii\helpers\Url::to(['index/list'])?>" name="serarch" method="get" class="fl">
-						<input type="text" class="txt"  name="keyWord" /><input type="submit" class="btn" value="搜索" />
+						<input type="text" class="txt"  name="keyWord"/><input type="submit" class="btn" value="搜索" />
                         <input type="hidden" name="cates" value="<?=Yii::$app->request->get('cates',1);?>">
 					</form>
 					<div class="form_right fl"></div>
